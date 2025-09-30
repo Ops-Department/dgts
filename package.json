@@ -6,8 +6,8 @@
   "unpkg": "dist/dgts.js",
   "files": ["dist"],
   "scripts": {
-    "build": "esbuild src/index.ts --bundle --format=iife --global-name=DGTS --outfile=dist/dgts.js",
-    "start": "esbuild src/index.ts --bundle --format=iife --global-name=DGTS --outfile=dist/dgts.js && http-server ."
+    "build": "esbuild src/index.ts --bundle --format=iife --global-name=DGTS --outfile=dist/dgts.js && cp index.html dist/index.html && cp PROMPT.md dist/PROMPT.md",
+    "start": "npm run build && http-server dist"
   },
   "dependencies": {
     "@deepgram/sdk": "^4.11.0"
