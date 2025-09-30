@@ -136,7 +136,14 @@
         } catch (e) {
           console.warn('Unable to inspect token payload', e);
         }
-        controller.init({ token: browserToken, settings: DGTS.baseConfig });
+        let config = DGTS.baseConfig;
+        // override the think prompt from PROMPT.md
+        const prompt = ""
+        // load the prompt from PROMPT.md via http
+        const response = await fetch('PROMPT.md');
+        const text = await response.text();
+        config.agent.think.prompt = text
+        controller.init({ token: browserToken, settings: config });
         await controller.connect();
         setStatus('Connected, starting mic…');
         await startMic();

@@ -78,36 +78,13 @@ export class VoiceAgentService {
     if (!this.token) throw new Error("No token set");
     if (!this.config && !this.rawSettings) throw new Error("No agent settings provided");
 
-    const { listenModel, thinkModel, speechModel, basePrompt } = this.config ?? ({} as AgentConfig);
-
-    const resolveThinkProvider = (model: string): "anthropic" | "open_ai" | "google" => {
-      const m = model.toLowerCase();
-      if (m.includes("claude")) return "anthropic";
-      if (m.includes("gemini") || m.includes("google")) return "google";
-      // default to OpenAI for gpt/o-series and unknowns
-      return "open_ai";
-    };
 
     const client = new DeepgramClient({ accessToken: this.token }).agent();
     this.client = client;
 
     client.once(AgentEvents.Welcome, (welcome) => {
       this.listeners.welcome?.(welcome);
-      const settings = this.rawSettings ?? ({
-        audio: {
-          input: { encoding: "linear16", sample_rate: 24000 },
-          output: { encoding: "linear16", sample_rate: 24000, container: "none" },
-        },
-        agent: {
-          greeting: "Whats up buttercup?",
-          listen: { provider: { type: "deepgram", model: listenModel } },
-          speak: { provider: { type: "deepgram", model: speechModel } },
-          think: {
-            provider: { type: resolveThinkProvider(thinkModel), model: thinkModel },
-            prompt: basePrompt,
-          },
-        },
-      } as any);
+      const settings = this.rawSettings;
       client.configure(settings);
     });
 
