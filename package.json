@@ -1,0 +1,20 @@
+{
+  "name": "dgts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "unpkg": "dist/dgts.js",
+  "files": ["dist"],
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --format=iife --global-name=DGTS --outfile=dist/dgts.js",
+    "start": "esbuild src/index.ts --bundle --format=iife --global-name=DGTS --outfile=dist/dgts.js && http-server ."
+  },
+  "dependencies": {
+    "@deepgram/sdk": "^4.11.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.21.5",
+    "http-server": "^14.1.1",
+    "buffer": "^6.0.3"
+  }
+}

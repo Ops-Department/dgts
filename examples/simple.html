@@ -1,0 +1,199 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DGTS Simple Demo</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      margin: 2rem;
+    }
+
+    .status {
+      margin-top: 1rem;
+    }
+
+    .ok {
+      color: #0a7a0a;
+    }
+
+    .err {
+      color: #b00020;
+    }
+
+    button {
+      margin-right: .5rem;
+    }
+
+    pre {
+      background: #f6f8fa;
+      padding: .75rem;
+      border-radius: 6px;
+      max-width: 800px;
+      overflow: auto;
+    }
+
+    pre.log {
+      max-height: 280px;
+      overflow-y: auto;
+      border: 1px solid #e1e4e8;
+    }
+
+    .columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .columns {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <h1>DGTS Simple Demo</h1>
+  <p>
+    Pass your Deepgram API key in the URL as <code>?dg_token=YOUR_KEY</code>.<br />
+    Example: <code>simple.html?dg_token=dg_XXXXXXXX</code>
+  </p>
+
+  <div>
+    <button id="connectBtn">Connect</button>
+    <button id="startBtn">Start Mic</button>
+    <button id="stopBtn">Stop Mic</button>
+    <button id="disconnectBtn">Disconnect</button>
+  </div>
+
+  <div class="status" id="status"></div>
+  <div class="status" id="mic"></div>
+
+  <div class="columns">
+    <div>
+      <h3>Transcript</h3>
+      <pre id="transcript" class="log"></pre>
+    </div>
+    <div>
+      <h3>Agent Events</h3>
+      <pre id="events" class="log"></pre>
+    </div>
+  </div>
+
+  <script src="../dist/dgts.js"></script>
+  <script>
+    const qs = new URLSearchParams(location.search);
+    const token = qs.get('dg_token');
+
+    const statusEl = document.getElementById('status');
+    const micEl = document.getElementById('mic');
+    const transcriptEl = document.getElementById('transcript');
+    const eventsEl = document.getElementById('events');
+
+    function setStatus(text, kind = 'ok') {
+      statusEl.textContent = text;
+      statusEl.className = `status ${kind}`;
+    }
+
+    // On load: do nothing. We'll validate token on Connect.
+
+    const controller = new DGTS.AgentController();
+
+    // Log all agent events to console and UI panel
+    const appendEvent = (name, payload) => {
+      const ts = new Date().toLocaleTimeString();
+      const short = typeof payload === 'string' ? payload : (payload && payload.type) ? payload.type : '';
+      const line = `[${ts}] ${name}${short ? ` (${short})` : ''}`;
+      console.log('[AgentEvent]', name, payload);
+      const lines = (eventsEl.textContent || '').split('\n').filter(Boolean);
+      lines.push(line);
+      // Keep last 200 lines
+      eventsEl.textContent += (eventsEl.textContent ? '\n' : '') + line;
+    };
+
+    Object.values(DGTS.AgentEvents || {}).forEach((evt) => {
+      controller.onAgent(evt, (data) => appendEvent(evt, data));
+    });
+
+    // Show transcript updates
+    controller.onTranscript((messages) => {
+      transcriptEl.textContent = messages.map(m => `[${m.role}] ${m.content}`).join('\n');
+    });
+
+    async function connect() {
+      if (!token) return setStatus('Cannot connect: missing dg_token', 'err');
+      try {
+        // If a raw API key is provided (starts with dg_), exchange for a browser token
+        let browserToken = token;
+        try {
+          const payload = JSON.parse(atob(browserToken.split('.')[1]));
+          console.log('Client token exp:', payload.exp, 'scopes:', payload.scopes);
+          setStatus(`Token OK. exp=${payload.exp} scopes=${(payload.scopes || []).join(',')}`);
+        } catch (e) {
+          console.warn('Unable to inspect token payload', e);
+        }
+        controller.init({ token: browserToken, settings: DGTS.baseConfig });
+        await controller.connect();
+        setStatus('Connected, starting mic…');
+        await startMic();
+      } catch (e) {
+        console.error(e);
+        setStatus('Connect failed', 'err');
+      }
+    }
+
+    async function startMic() {
+      try {
+        await controller.startRecording({
+          onRecordingChange: (isRec) => {
+            micEl.textContent = isRec ? 'Mic: recording' : 'Mic: stopped';
+          },
+          onSampleRateDetermined: (sr) => {
+            micEl.textContent = `Mic: recording at ${sr} Hz`;
+          },
+          onError: (err) => {
+            console.error('Mic error:', err);
+            micEl.textContent = `Mic error: ${err}`;
+          },
+        });
+        setStatus('Mic streaming');
+      } catch (e) {
+        console.error(e);
+        setStatus('Mic start failed', 'err');
+      }
+    }
+
+    function stopMic() {
+      try {
+        controller.stopRecording();
+        setStatus('Mic stopped');
+      } catch (e) {
+        console.error(e);
+        setStatus('Mic stop failed', 'err');
+      }
+    }
+
+    function disconnect() {
+      try {
+        controller.disconnect();
+        setStatus('Disconnected');
+      } catch (e) {
+        console.error(e);
+        setStatus('Disconnect failed', 'err');
+      }
+    }
+
+    document.getElementById('connectBtn').onclick = connect;
+    document.getElementById('startBtn').onclick = startMic;
+    document.getElementById('stopBtn').onclick = stopMic;
+    document.getElementById('disconnectBtn').onclick = disconnect;
+
+    // On load: do nothing. Only connect on button click.
+  </script>
+</body>
+
+</html>
