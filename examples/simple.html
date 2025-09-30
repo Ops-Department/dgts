@@ -188,6 +188,7 @@
       try {
         controller.disconnect();
         setStatus('Disconnected');
+        stopMic();
       } catch (e) {
         console.error(e);
         setStatus('Disconnect failed', 'err');
