@@ -84,6 +84,28 @@ For a fuller demo with status and event logging, see `examples/simple.html`.
 - This SDK expects a pre-minted Deepgram browser/client token (JWT) passed to `AgentController.init({ token })`.
 - Do not expose your Deepgram secret key in client code. If you only have a secret key, mint a short‑lived browser token on your server and pass it to the page (e.g., via query string or fetch).
 
+### Obtain a client token (curl)
+
+Deepgram's `v1/auth/grant` endpoint does not support CORS. Mint the token server‑side or from your terminal, then open the page with `?dg_token=...`.
+
+```bash
+# Prints only the token
+curl -s -X POST \
+  https://api.deepgram.com/v1/auth/grant \
+  -H 'Authorization: Token YOUR_DEEPGRAM_API_KEY' \
+  -H 'Content-Type: application/json' \
+  -d '{}' | jq -r .access_token
+
+# Prints a ready-to-open URL for the local example
+curl -s -X POST \
+  https://api.deepgram.com/v1/auth/grant \
+  -H 'Authorization: Token YOUR_DEEPGRAM_API_KEY' \
+  -H 'Content-Type: application/json' \
+  -d '{}' | jq -r '"http://localhost:8080/examples/simple.html?dg_token=\\(.access_token)"'
+```
+
+Then open the printed URL (or copy the token into your own URL). The sample page `examples/simple.html` also shows this curl approach and updates the command as you type an API key.
+
 ## Public API
 
 The bundle re-exports the following under the `DGTS` global (from `src/index.ts`):
