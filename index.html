@@ -107,7 +107,7 @@
         const apiKey = (apiKeyEl.value || 'YOUR_DEEPGRAM_API_KEY').replace(/"/g, '\\"');
         const pageUrl = `${location.origin}${location.pathname}`;
         // jq prints: <pageUrl>?dg_token=<token>
-        const curl = `curl -s -X POST \\\n+  https://api.deepgram.com/v1/auth/grant \\\n+  -H 'Authorization: Token ${apiKey}' \\\n+  -H 'Content-Type: application/json' \\\n+  -d '{}' | jq -r '"${pageUrl}?dg_token=\\(.access_token)"'`;
+        const curl = `curl -s -X POST \\\n+  https://api.deepgram.com/v1/auth/grant \\\n+  -H 'Authorization: Token ${apiKey}' \\\n+  -H 'Content-Type: application/json' \\\n+  -d '{"ttl_seconds": 3600}' | jq -r '"${pageUrl}?dg_token=\\(.access_token)"'`;
         curlCmdEl.textContent = curl;
       }
 

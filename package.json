@@ -6,6 +6,7 @@
   "unpkg": "dist/dgts.js",
   "files": ["dist"],
   "scripts": {
+    "upload": "npm run build && aws s3 cp dist/index.html s3://opsdepartment.com/demo/index.html && aws s3 cp dist/dgts.js s3://opsdepartment.com/demo/dgts.js && aws s3 cp dist/PROMPT.md s3://opsdepartment.com/demo/PROMPT.md",
     "build": "esbuild src/index.ts --bundle --format=iife --global-name=DGTS --outfile=dist/dgts.js && cp index.html dist/index.html && cp PROMPT.md dist/PROMPT.md",
     "start": "npm run build && http-server dist"
   },
