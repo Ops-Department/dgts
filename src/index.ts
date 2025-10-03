@@ -14,4 +14,4 @@ export * from "./lib/Logger";
 export * from "./lib/Models";
 export { AgentEvents } from "@deepgram/sdk";
 
-export { default as baseConfig } from "./base_config.json";
+export { default as baseConfig } from "./config.json";

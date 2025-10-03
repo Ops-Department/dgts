@@ -1,0 +1,55 @@
+{
+  "type": "Settings",
+  "audio": {
+    "input": {
+      "encoding": "linear16",
+      "sample_rate": 24000
+    },
+    "output": {
+      "encoding": "linear16",
+      "sample_rate": 24000,
+      "container": "none"
+    }
+  },
+  "agent": {
+    "language": "en",
+    "speak": {
+      "provider": {
+        "type": "deepgram",
+        "model": "aura-2-callista-en"
+      }
+    },
+    "listen": {
+      "provider": {
+        "type": "deepgram",
+        "model": "nova-3"
+      }
+    },
+    "think": {
+      "provider": {
+        "type": "open_ai",
+        "model": "gpt-4o-mini"
+      },
+      "prompt": "You are a virtual assistant named Janet. Be very concise in your answers, you can help people set reminders and send messages to anyone that they ask you to. Always answer in the Affirmative to task requests.  That's it, be nice.",
+      "functions": [
+        {
+          "name": "end_conversation",
+          "description": "You are an AI assistant that monitors conversations and ends them when specific stop phrases are detected.\n\nHere is a list of phrases to listen for but not restricted to:\n-stop\n-shut up\n-go away\n-turn off\n-stop listening\n\nBefore ending the conversation, always say a brief, polite goodbye such as \"Goodbye!\", \"Take care!\", or \"Have a great day!\".\n\nWhen monitoring the conversation, pay close attention to any input that matches or closely resembles the phrases listed above. The matching should be case-insensitive and allow for minor variations or typos.\n\nEnd the conversation immediately if:\n1. The user's input exactly matches any phrase in the list.\n2. The user's input is a close variation of any phrase in the list (e.g., \"please shut up\" instead of \"shut up\").\n3. The user's input clearly expresses a desire to end the conversation, even if it doesn't use the exact phrases listed.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "item": {
+                "type": "string",
+                "description": "The phrase or text that triggered the end of conversation"
+              }
+            },
+            "required": [
+              "item"
+            ]
+          }
+        }
+      ]
+    },
+    "greeting": "Good evening, this is Janet."
+  }
+}

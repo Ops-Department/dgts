@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html>
 
@@ -7,14 +6,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>DGTS Simple Demo</title>
   <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-D34F167WEN"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-D34F167WEN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
 
-  gtag('config', 'G-D34F167WEN');
-</script>
+    gtag('config', 'G-D34F167WEN');
+  </script>
   <style>
     body {
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
@@ -66,186 +65,256 @@
   </style>
 </head>
 
-  <body>
-    <h1>DGTS Simple Demo</h1>
-    <p>
-      Provide a Deepgram browser token via <code>?dg_token=YOUR_CLIENT_TOKEN</code>.
-      If you don't have one, use the curl command below to mint a short‑lived client token, then reload with <code>?dg_token=...</code>.
-      Example: <code>simple.html?dg_token=eyJ...</code>
-    </p>
+<body>
+  <h1>DGTS Simple Demo</h1>
+  <p>
+    Provide a Deepgram browser token via <code>?dg_token=YOUR_CLIENT_TOKEN</code>.
+    If you don't have one, use the curl command below to mint a short‑lived client token, then reload with
+    <code>?dg_token=...</code>.
+    Example: <code>simple.html?dg_token=eyJ...</code>
+  </p>
 
-    <div id="grantBox" style="margin: 12px 0; display: none;">
-      <p><strong>No dg_token provided.</strong> Mint a short‑lived browser token using your Deepgram API key from your terminal. The command below will print a URL to open this page with the token attached.</p>
-      <div style="margin:8px 0;">
-        <label for="apiKey">Deepgram API Key:</label>
-        <input id="apiKey" type="password" placeholder="dg_secret_..." style="width: 360px;" />
-      </div>
-      <p>Run this command (it will output a URL to open):</p>
-      <pre><code id="curlCmd"></code></pre>
-      <small style="display:block;margin-top:6px;opacity:.7;">Note: The grant endpoint does not support CORS, so obtaining a token must be done server-side or via terminal.</small>
+  <div id="grantBox" style="margin: 12px 0; display: none;">
+    <p><strong>No dg_token provided.</strong> Mint a short‑lived browser token using your Deepgram API key from your
+      terminal. The command below will print a URL to open this page with the token attached.</p>
+    <div style="margin:8px 0;">
+      <label for="apiKey">Deepgram API Key:</label>
+      <input id="apiKey" type="password" placeholder="dg_secret_..." style="width: 360px;" />
     </div>
+    <p>Run this command (it will output a URL to open):</p>
+    <pre><code id="curlCmd"></code></pre>
+    <small style="display:block;margin-top:6px;opacity:.7;">Note: The grant endpoint does not support CORS, so obtaining
+      a token must be done server-side or via terminal.</small>
+  </div>
 
+  <div>
+    <button id="connectBtn">Connect</button>
+    <button id="startBtn">Start Mic</button>
+    <button id="stopBtn">Stop Mic</button>
+    <button id="disconnectBtn">Disconnect</button>
+  </div>
+
+  <div class="status" id="status"></div>
+  <div class="status" id="mic"></div>
+  <div class="status" id="tokenTtl"></div>
+  <div class="columns">
     <div>
-      <button id="connectBtn">Connect</button>
-      <button id="startBtn">Start Mic</button>
-      <button id="stopBtn">Stop Mic</button>
-      <button id="disconnectBtn">Disconnect</button>
+      <h3>Transcript</h3>
+      <pre id="transcript" class="log"></pre>
     </div>
-
-    <div class="status" id="status"></div>
-    <div class="status" id="mic"></div>
-
-    <div class="columns">
-      <div>
-        <h3>Transcript</h3>
-        <pre id="transcript" class="log"></pre>
-      </div>
-      <div>
-        <h3>Agent Events</h3>
-        <pre id="events" class="log"></pre>
-      </div>
+    <div>
+      <h3>Agent Events</h3>
+      <pre id="events" class="log"></pre>
     </div>
+  </div>
 
-    <script src="dgts.js"></script>
-    <script>
-            // Dynamically render curl command that prints a URL with the minted token
-            function renderCurlCommand() {
-        const apiKeyEl = document.getElementById('apiKey');
-        const curlCmdEl = document.getElementById('curlCmd');
-        if (!apiKeyEl || !curlCmdEl) return;
-        const apiKey = (apiKeyEl.value || 'YOUR_DEEPGRAM_API_KEY').replace(/"/g, '\\"');
-        const pageUrl = `${location.origin}${location.pathname}`;
-        // jq prints: <pageUrl>?dg_token=<token>
-        const curl = `curl -s -X POST \\\n+  https://api.deepgram.com/v1/auth/grant \\\n+  -H 'Authorization: Token ${apiKey}' \\\n+  -H 'Content-Type: application/json' \\\n+  -d '{"ttl_seconds": 3600}' | jq -r '"${pageUrl}?dg_token=\\(.access_token)"'`;
-        curlCmdEl.textContent = curl;
+  <script src="dgts.js"></script>
+  <script>
+    // Dynamically render curl command that prints a URL with the minted token
+    function renderCurlCommand() {
+      const apiKeyEl = document.getElementById('apiKey');
+      const curlCmdEl = document.getElementById('curlCmd');
+      if (!apiKeyEl || !curlCmdEl) return;
+      const apiKey = (apiKeyEl.value || 'YOUR_DEEPGRAM_API_KEY').replace(/"/g, '\\"');
+      const pageUrl = `${location.origin}${location.pathname}`;
+      // jq prints: <pageUrl>?dg_token=<token>
+      const curl = `curl -s -X POST \\\n+  https://api.deepgram.com/v1/auth/grant \\\n+  -H 'Authorization: Token ${apiKey}' \\\n+  -H 'Content-Type: application/json' \\\n+  -d '{"ttl_seconds": 3600}' | jq -r '"${pageUrl}?dg_token=\\(.access_token)"'`;
+      curlCmdEl.textContent = curl;
+    }
+
+    // Update command as user types API key
+    document.getElementById('apiKey')?.addEventListener('input', renderCurlCommand);
+
+    const qs = new URLSearchParams(location.search);
+    const token = qs.get('dg_token');
+    let browserToken = token || null;
+
+    const statusEl = document.getElementById('status');
+    const micEl = document.getElementById('mic');
+    const tokenTtlEl = document.getElementById('tokenTtl');
+    const transcriptEl = document.getElementById('transcript');
+    const eventsEl = document.getElementById('events');
+
+    function updateTokenTtl() {
+      if (browserToken) {
+        const payload = JSON.parse(atob(browserToken.split('.')[1]));
+        const ttl = payload.exp - Date.now() / 1000;
+        if (ttl < 300) {
+          setStatus('Token is about to expire', 'err');
+        }
+
+        tokenTtlEl.textContent = `Token TTL: ${(ttl / 60).toFixed(2)}m`;
       }
+    }
 
-      // Update command as user types API key
-      document.getElementById('apiKey')?.addEventListener('input', renderCurlCommand);
+    updateTokenTtl();
+    setInterval(() => {
+      updateTokenTtl();
+    }, 10000);
 
-      const qs = new URLSearchParams(location.search);
-      const token = qs.get('dg_token');
-      let browserToken = token || null;
+    function setStatus(text, kind = 'ok') {
+      statusEl.textContent = text;
+      statusEl.className = `status ${kind}`;
+    }
 
-      const statusEl = document.getElementById('status');
-      const micEl = document.getElementById('mic');
-      const transcriptEl = document.getElementById('transcript');
-      const eventsEl = document.getElementById('events');
+    // Show grant UI if no token provided via querystring
+    const grantBox = document.getElementById('grantBox');
 
-      function setStatus(text, kind = 'ok') {
-        statusEl.textContent = text;
-        statusEl.className = `status ${kind}`;
-      }
+    if (!browserToken) {
+      grantBox.style.display = 'block';
+      setStatus('No dg_token provided. See instructions below to mint a client token.', 'err');
+      renderCurlCommand();
+    }
 
-      // Show grant UI if no token provided via querystring
-      const grantBox = document.getElementById('grantBox');
+    const controller = new DGTS.AgentController();
 
-      if (!browserToken) {
-        grantBox.style.display = 'block';
-        setStatus('No dg_token provided. See instructions below to mint a client token.', 'err');
-        renderCurlCommand();
-      }
-
-      const controller = new DGTS.AgentController();
-
-      // Log all agent events to console and UI panel
-      const appendEvent = (name, payload) => {
-        const ts = new Date().toLocaleTimeString();
-        const short = typeof payload === 'string' ? payload : (payload && payload.type) ? payload.type : '';
-        const line = `[${ts}] ${name}${short ? ` (${short})` : ''}`;
+    // Log all agent events to console and UI panel
+    const appendEvent = (name, payload) => {
+      const ts = new Date().toLocaleTimeString();
+      const short = typeof payload === 'string' ? payload : (payload && payload.type) ? payload.type : '';
+      const line = `[${ts}] ${name}${short ? ` (${short})` : ''}`;
+      if (name === 'Audio') {
+        console.log('[AgentEvent]', name);
+        const lines = (eventsEl.textContent || '').split('\n');
+        // Find the last non-empty line index
+        let lastIdx = -1;
+        for (let i = lines.length - 1; i >= 0; i--) {
+          if (lines[i].trim() !== '') { lastIdx = i; break; }
+        }
+        const lastLine = lastIdx >= 0 ? lines[lastIdx] : '';
+        // Match an Audio line, allowing optional subtype and trailing periods
+        const isAudioLine = /\]\s+Audio(?:\s*\([^)]*\))?(?:\.+)?$/.test(lastLine);
+        if (isAudioLine && lastIdx >= 0) {
+          lines[lastIdx] = `${lastLine}.`;
+          eventsEl.textContent = lines.join('\n');
+        } else {
+          eventsEl.textContent += (eventsEl.textContent ? '\n' : '') + line;
+        }
+      } else {
         console.log('[AgentEvent]', name, payload);
         eventsEl.textContent += (eventsEl.textContent ? '\n' : '') + line;
-      };
-
-      Object.values(DGTS.AgentEvents || {}).forEach((evt) => {
-        controller.onAgent(evt, (data) => appendEvent(evt, data));
-      });
-
-      // Show transcript updates
-      controller.onTranscript((messages) => {
-        transcriptEl.textContent = messages.map(m => `[${m.role}] ${m.content}`).join('\n');
-      });
-
-      async function connect() {
-        if (!browserToken) return setStatus('Cannot connect: missing client token. Use the grant box above.', 'err');
-        try {
-          // Inspect token payload if it's a JWT
-          try {
-            const payload = JSON.parse(atob(browserToken.split('.')[1]));
-            console.log('Client token exp:', payload.exp, 'scopes:', payload.scopes);
-            setStatus(`Token OK. exp=${payload.exp} scopes=${(payload.scopes || []).join(',')}`);
-          } catch {}
-
-          // Load prompt from PROMPT.md and apply to base config
-          const config = DGTS.baseConfig;
-          try {
-            const response = await fetch('PROMPT.md');
-            const text = await response.text();
-            if (config?.agent?.think) config.agent.think.prompt = text;
-          } catch {}
-
-          controller.init({ token: browserToken, settings: config });
-          await controller.connect();
-          setStatus('Connected, starting mic…');
-          await startMic();
-        } catch (e) {
-          console.error(e);
-          setStatus('Connect failed', 'err');
-        }
       }
+    };
 
-      // No in-browser grant flow; see curl instructions above.
+    Object.values(DGTS.AgentEvents || {}).forEach((evt) => {
+      controller.onAgent(evt, (data) => appendEvent(evt, data));
+    });
 
-      async function startMic() {
+    // Show transcript updates
+    controller.onTranscript((messages) => {
+      transcriptEl.textContent = messages.map(m => `[${m.role}] ${m.content}`).join('\n');
+    });
+
+    async function connect() {
+      if (!browserToken) return setStatus('Cannot connect: missing client token. Use the grant box above.', 'err');
+      try {
+        // Inspect token payload if it's a JWT
         try {
-          await controller.startRecording({
-            onRecordingChange: (isRec) => {
-              micEl.textContent = isRec ? 'Mic: recording' : 'Mic: stopped';
-            },
-            onSampleRateDetermined: (sr) => {
-              micEl.textContent = `Mic: recording at ${sr} Hz`;
-            },
-            onError: (err) => {
-              console.error('Mic error:', err);
-              micEl.textContent = `Mic error: ${err}`;
-            },
-          });
-          setStatus('Mic streaming');
-        } catch (e) {
-          console.error(e);
-          setStatus('Mic start failed', 'err');
-        }
-      }
+          const payload = JSON.parse(atob(browserToken.split('.')[1]));
+          console.log('Client token exp:', payload.exp, 'scopes:', payload.scopes);
+          setStatus(`Token OK. exp=${payload.exp} scopes=${(payload.scopes || []).join(',')}`);
+        } catch { }
 
-      function stopMic() {
+        // Load prompt from PROMPT.md and apply to base config
+        let config = DGTS.baseConfig;
         try {
-          controller.stopRecording();
-          setStatus('Mic stopped');
-        } catch (e) {
-          console.error(e);
-          setStatus('Mic stop failed', 'err');
-        }
-      }
-
-      function disconnect() {
+          console.log('Loading config from config.json');
+          const response = await fetch('config.json');
+          const text = await response.text();
+          config = JSON.parse(text);
+          console.log('Loaded config:', config);
+        } catch(e) {
+          console.error('Failed to load config, using default', e);
+         }
         try {
-          controller.disconnect();
-          setStatus('Disconnected');
-          stopMic();
+          const response = await fetch('PROMPT.md');
+          const text = await response.text();
+          if (config?.agent?.think) config.agent.think.prompt = text;
         } catch (e) {
-          console.error(e);
-          setStatus('Disconnect failed', 'err');
-        }
+          console.error('Failed to load prompt, using default', e);
+         }
+
+        controller.init({ token: browserToken, settings: config });
+        await controller.connect();
+        setStatus('Connected, starting mic…');
+        await startMic();
+        // Callback for function calls FunctionCallRequest
+        controller.onAgent(DGTS.AgentEvents.FunctionCallRequest, async (data) => {
+          console.log('Handling FunctionCallRequest', data);
+
+          if (data.functions[0].name === 'end_conversation') {
+            await controller.functionCallResponse({
+              id: data.functions[0].id,
+              name: data.functions[0].name,
+              content: "thank the user and end the conversation",
+            });
+            console.log('end_conversation called');
+            setTimeout(async () => {
+              await controller.disconnect();
+              setStatus('Disconnected');
+              stopMic();
+            }, 4000);
+            return;
+          }
+        });
+      } catch (e) {
+        console.error(e);
+        setStatus('Connect failed', 'err');
       }
+    }
 
-      document.getElementById('connectBtn').onclick = connect;
-      document.getElementById('startBtn').onclick = startMic;
-      document.getElementById('stopBtn').onclick = stopMic;
-      document.getElementById('disconnectBtn').onclick = disconnect;
-      // Token must be provided via URL.
+    // No in-browser grant flow; see curl instructions above.
 
-      // On load: do nothing. Only connect on button click or after granting a client token.
-    </script>
-  </body>
+    async function startMic() {
+      try {
+        await controller.startRecording({
+          onRecordingChange: (isRec) => {
+            micEl.textContent = isRec ? 'Mic: recording' : 'Mic: stopped';
+          },
+          onSampleRateDetermined: (sr) => {
+            micEl.textContent = `Mic: recording at ${sr} Hz`;
+          },
+          onError: (err) => {
+            console.error('Mic error:', err);
+            micEl.textContent = `Mic error: ${err}`;
+          },
+        });
+        setStatus('Mic streaming');
+      } catch (e) {
+        console.error(e);
+        setStatus('Mic start failed', 'err');
+      }
+    }
+
+    function stopMic() {
+      try {
+        controller.stopRecording();
+        setStatus('Mic stopped');
+      } catch (e) {
+        console.error(e);
+        setStatus('Mic stop failed', 'err');
+      }
+    }
+
+    function disconnect() {
+      try {
+        controller.disconnect();
+        setStatus('Disconnected');
+        stopMic();
+      } catch (e) {
+        console.error(e);
+        setStatus('Disconnect failed', 'err');
+      }
+    }
+
+    document.getElementById('connectBtn').onclick = connect;
+    document.getElementById('startBtn').onclick = startMic;
+    document.getElementById('stopBtn').onclick = stopMic;
+    document.getElementById('disconnectBtn').onclick = disconnect;
+    // Token must be provided via URL.
+
+    // On load: do nothing. Only connect on button click or after granting a client token.
+  </script>
+</body>
 
 </html>
