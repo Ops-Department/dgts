@@ -1,6 +1,12 @@
 # Created by https://www.toptal.com/developers/gitignore/api/node
 # Edit at https://www.toptal.com/developers/gitignore?templates=node
 
+### Mac ###
+.DS_Store
+
+### Python ###
+__pycache__/
+
 ### Node ###
 # Logs
 logs
